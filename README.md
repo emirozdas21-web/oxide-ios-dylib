@@ -89,6 +89,22 @@ IPA dosyanızı bir sunucuya veya GitHub Release'e yükleyin ve URL'i alın.
 1. Workflow run sayfasına gidin
 2. "Artifacts" bölümünden "oxide_hut_patched" dosyasını indirin
 
+#### Dylib'i Çalışma Zamanında Yükleme
+
+LC_LOAD_DYLIB enjeksiyonu karmaşık olduğu için dylib Frameworks dizinine kopyalanır ve çalışma zamanında yüklenmelidir. İki yöntem mevcuttur:
+
+**Yöntem 1: Frida ile Yükleme (Önerilen)**
+```bash
+# iOS cihazda (jailbreak gerekli)
+frida -U -f com.oxide.app -l load_dylib_frida.js --no-pause
+
+# Ya da çalışan uygulama
+frida -U com.oxide.app -l load_dylib_frida.js
+```
+
+**Yöntem 2: Cydia Substrate ile**
+Eğer cihazda Cydia Substrate yüklüyse, dylib'in `/Library/MobileSubstrate/DynamicLibraries/` dizinine eklenmesi ve `.plist` dosyası oluşturulması gerekir.
+
 ### IPA Entegrasyonu (Manuel - macOS)
 
 Eğer `oxide_cry4me.ipa` dosyanız varsa:
