@@ -1,17 +1,58 @@
-# Extracted folders
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.xcuserdatad
+DerivedData
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Build artifacts
+*.dylib
+*.o
+*.a
+libOxCryptoWrapper.dylib
+integrated_app/
+temp_analysis/
+extracted_ipa/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# IPA patcher specific
 HUT_extracted/
 oxide_extracted/
 oxide_ipa/
 ultimav2_extracted/
 goodbyedpi_temp/
-
-# APK and original IPA
 Oxide-11995-cry4medlc.apk
 OXIDE HUT V268.ipa
-
-# Build artifacts
 libOxCryptoWrapper-dylib.zip
 build-info.zip
-
-# macOS
-.DS_Store
