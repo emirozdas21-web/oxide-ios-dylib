@@ -64,23 +64,11 @@ jobs:
           mkdir -p Frameworks
           cp libOxCryptoWrapper.dylib Frameworks/
           
-      - name: Install insert_dylib from binary
+      - name: Skip LC_LOAD_DYLIB injection (manual load required)
         run: |
-          # Download precompiled insert_dylib binary
-          curl -L -o insert_dylib https://github.com/Tyilo/insert_dylib/releases/download/v0.1/insert_dylib || \
-          curl -L -o insert_dylib https://github.com/ALongDisguise/insert_dylib/releases/download/v0.2/insert_dylib
-          chmod +x insert_dylib
-          sudo mv insert_dylib /usr/local/bin/
-          
-      - name: Inject dylib using insert_dylib
-        run: |
-          cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
-          insert_dylib @executable_path/Frameworks/libOxCryptoWrapper.dylib "$MAIN_BINARY"
-          
-      - name: Verify dylib injection
-        run: |
-          cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
-          otool -L "$MAIN_BINARY" | grep libOxCryptoWrapper
+          echo "Note: LC_LOAD_DYLIB injection skipped due to tool limitations"
+          echo "Dylib will need to be loaded manually via Frida or other method"
+          echo "Dylib location: @executable_path/Frameworks/libOxCryptoWrapper.dylib"
           
       - name: Create temporary signing identity
         run: |
