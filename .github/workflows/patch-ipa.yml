@@ -51,16 +51,6 @@ jobs:
           cp libOxCryptoWrapper.dylib "ipa_extracted/Payload/${{ env.APP_NAME }}/"
           chmod +x "ipa_extracted/Payload/${{ env.APP_NAME }}/libOxCryptoWrapper.dylib"
           
-      - name: Install insert_dylib (alternative to optool)
-        run: |
-          # Clone and build insert_dylib
-          git clone https://github.com/Tyilo/insert_dylib.git
-          cd insert_dylib
-          xcodebuild -project insert_dylib.xcodeproj -scheme insert_dylib
-          sudo cp build/Release/insert_dylib /usr/local/bin/
-          sudo chmod +x /usr/local/bin/insert_dylib
-          cd ..
-          
       - name: Find main binary
         run: |
           cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
@@ -68,10 +58,24 @@ jobs:
           echo "MAIN_BINARY=$MAIN_BINARY" >> $GITHUB_ENV
           echo "Main binary: $MAIN_BINARY"
           
+      - name: Create Frameworks directory and copy dylib
+        run: |
+          cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
+          mkdir -p Frameworks
+          cp libOxCryptoWrapper.dylib Frameworks/
+          
+      - name: Install insert_dylib from binary
+        run: |
+          # Download precompiled insert_dylib binary
+          curl -L -o insert_dylib https://github.com/Tyilo/insert_dylib/releases/download/v0.1/insert_dylib || \
+          curl -L -o insert_dylib https://github.com/ALongDisguise/insert_dylib/releases/download/v0.2/insert_dylib
+          chmod +x insert_dylib
+          sudo mv insert_dylib /usr/local/bin/
+          
       - name: Inject dylib using insert_dylib
         run: |
           cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
-          insert_dylib @executable_path/libOxCryptoWrapper.dylib "$MAIN_BINARY"
+          insert_dylib @executable_path/Frameworks/libOxCryptoWrapper.dylib "$MAIN_BINARY"
           
       - name: Verify dylib injection
         run: |
