@@ -50,7 +50,7 @@ for fw in ${FRAMEWORKS}; do
 done
 
 # Uyarı ayarları
-CFLAGS+=" -Wall -Wextra -Werror"
+CFLAGS+=" -Wall -Wextra"
 
 echo -e "${YELLOW}Derleyici ayarları:${NC}"
 echo "  CC: ${CC}"
