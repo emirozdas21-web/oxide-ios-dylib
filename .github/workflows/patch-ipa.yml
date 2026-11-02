@@ -1,0 +1,106 @@
+name: Patch and Sign IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      dylib_url:
+        description: 'URL of libOxCryptoWrapper.dylib (or leave empty if uploaded to repo)'
+        required: false
+        default: ''
+
+jobs:
+  patch-ipa:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Download dylib from artifact if URL provided
+        if: ${{ inputs.dylib_url != '' }}
+        run: |
+          curl -L -o libOxCryptoWrapper.dylib "${{ inputs.dylib_url }}"
+          
+      - name: Verify dylib exists
+        run: |
+          if [ ! -f "libOxCryptoWrapper.dylib" ]; then
+            echo "Error: libOxCryptoWrapper.dylib not found!"
+            echo "Please upload it to the repository or provide a download URL."
+            exit 1
+          fi
+          ls -lh libOxCryptoWrapper.dylib
+          
+      - name: Extract IPA
+        run: |
+          unzip -q oxide_hut.ipa -d ipa_extracted
+          cd ipa_extracted/Payload
+          APP_NAME=$(ls -d *.app | head -1)
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+          echo "App bundle: $APP_NAME"
+          
+      - name: Copy dylib to app bundle
+        run: |
+          cp libOxCryptoWrapper.dylib "ipa_extracted/Payload/${{ env.APP_NAME }}/"
+          chmod +x "ipa_extracted/Payload/${{ env.APP_NAME }}/libOxCryptoWrapper.dylib"
+          
+      - name: Install optool (for LC_LOAD_DYLIB injection)
+        run: |
+          brew install optool
+          
+      - name: Find main binary
+        run: |
+          cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
+          MAIN_BINARY=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" Info.plist)
+          echo "MAIN_BINARY=$MAIN_BINARY" >> $GITHUB_ENV
+          echo "Main binary: $MAIN_BINARY"
+          
+      - name: Inject dylib using optool
+        run: |
+          cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
+          optool install -c load -p @executable_path/libOxCryptoWrapper.dylib -t "$MAIN_BINARY"
+          
+      - name: Verify dylib injection
+        run: |
+          cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
+          otool -L "$MAIN_BINARY" | grep libOxCryptoWrapper
+          
+      - name: Create temporary signing identity
+        run: |
+          # Create ad-hoc signing identity for testing
+          echo "Using ad-hoc signing (-)"
+          
+      - name: Remove existing signatures
+        run: |
+          cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
+          codesign --remove-signature "$MAIN_BINARY" 2>/dev/null || true
+          codesign --remove-signature . 2>/dev/null || true
+          
+      - name: Sign dylib
+        run: |
+          codesign --force --sign - "ipa_extracted/Payload/${{ env.APP_NAME }}/libOxCryptoWrapper.dylib"
+          
+      - name: Sign main binary
+        run: |
+          codesign --force --sign - --entitlements entitlements.plist "ipa_extracted/Payload/${{ env.APP_NAME }}/${{ env.MAIN_BINARY }}" || \
+          codesign --force --sign - "ipa_extracted/Payload/${{ env.APP_NAME }}/${{ env.MAIN_BINARY }}"
+          
+      - name: Sign app bundle
+        run: |
+          codesign --force --deep --sign - "ipa_extracted/Payload/${{ env.APP_NAME }}"
+          
+      - name: Verify signature
+        run: |
+          codesign -vvv "ipa_extracted/Payload/${{ env.APP_NAME }}"
+          
+      - name: Repackage IPA
+        run: |
+          cd ipa_extracted
+          zip -qr ../oxide_hut_patched.ipa Payload
+          cd ..
+          
+      - name: Upload patched IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: oxide_hut_patched
+          path: oxide_hut_patched.ipa
+          retention-days: 7

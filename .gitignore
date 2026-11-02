@@ -1,0 +1,17 @@
+# Extracted folders
+HUT_extracted/
+oxide_extracted/
+oxide_ipa/
+ultimav2_extracted/
+goodbyedpi_temp/
+
+# APK and original IPA
+Oxide-11995-cry4medlc.apk
+OXIDE HUT V268.ipa
+
+# Build artifacts
+libOxCryptoWrapper-dylib.zip
+build-info.zip
+
+# macOS
+.DS_Store
