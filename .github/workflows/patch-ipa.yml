@@ -51,14 +51,15 @@ jobs:
           cp libOxCryptoWrapper.dylib "ipa_extracted/Payload/${{ env.APP_NAME }}/"
           chmod +x "ipa_extracted/Payload/${{ env.APP_NAME }}/libOxCryptoWrapper.dylib"
           
-      - name: Install optool (for LC_LOAD_DYLIB injection)
+      - name: Install insert_dylib (alternative to optool)
         run: |
-          # Install optool via curl from GitHub
-          curl -L -o optool.tar.gz https://github.com/alexzielenski/optool/releases/download/0.1.7/optool_0.1.7.tar.gz
-          tar -xzf optool.tar.gz
-          sudo mv optool /usr/local/bin/ || sudo cp optool /usr/local/bin/
-          sudo chmod +x /usr/local/bin/optool
-          optool -v
+          # Clone and build insert_dylib
+          git clone https://github.com/Tyilo/insert_dylib.git
+          cd insert_dylib
+          make
+          sudo cp insert_dylib /usr/local/bin/
+          sudo chmod +x /usr/local/bin/insert_dylib
+          cd ..
           
       - name: Find main binary
         run: |
@@ -67,10 +68,10 @@ jobs:
           echo "MAIN_BINARY=$MAIN_BINARY" >> $GITHUB_ENV
           echo "Main binary: $MAIN_BINARY"
           
-      - name: Inject dylib using optool
+      - name: Inject dylib using insert_dylib
         run: |
           cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
-          optool install -c load -p @executable_path/libOxCryptoWrapper.dylib -t "$MAIN_BINARY"
+          insert_dylib @executable_path/libOxCryptoWrapper.dylib "$MAIN_BINARY"
           
       - name: Verify dylib injection
         run: |
