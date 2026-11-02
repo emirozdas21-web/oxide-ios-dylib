@@ -110,3 +110,10 @@ jobs:
           name: oxide_hut_patched
           path: oxide_hut_patched.ipa
           retention-days: 7
+          
+      - name: Upload Frida script
+        uses: actions/upload-artifact@v4
+        with:
+          name: frida_scripts
+          path: load_dylib_frida.js
+          retention-days: 7
