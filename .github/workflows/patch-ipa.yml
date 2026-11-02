@@ -3,6 +3,9 @@ name: Patch and Sign IPA
 on:
   workflow_dispatch:
     inputs:
+      ipa_url:
+        description: 'URL of IPA file to patch'
+        required: true
       dylib_url:
         description: 'URL of libOxCryptoWrapper.dylib (or leave empty if uploaded to repo)'
         required: false
@@ -16,6 +19,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         
+      - name: Download IPA
+        run: |
+          curl -L -o oxide_hut.ipa "${{ inputs.ipa_url }}"
+          ls -lh oxide_hut.ipa
+          
       - name: Download dylib from artifact if URL provided
         if: ${{ inputs.dylib_url != '' }}
         run: |
