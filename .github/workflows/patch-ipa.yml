@@ -64,11 +64,19 @@ jobs:
           mkdir -p Frameworks
           cp libOxCryptoWrapper.dylib Frameworks/
           
-      - name: Skip LC_LOAD_DYLIB injection (manual load required)
+      - name: Install insert_dylib from Homebrew
         run: |
-          echo "Note: LC_LOAD_DYLIB injection skipped due to tool limitations"
-          echo "Dylib will need to be loaded manually via Frida or other method"
-          echo "Dylib location: @executable_path/Frameworks/libOxCryptoWrapper.dylib"
+          brew install insert-dylib
+          
+      - name: Inject dylib using insert-dylib
+        run: |
+          cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
+          insert-dylib @executable_path/Frameworks/libOxCryptoWrapper.dylib "$MAIN_BINARY" --inplace --overwrite
+          
+      - name: Verify dylib injection
+        run: |
+          cd "ipa_extracted/Payload/${{ env.APP_NAME }}"
+          otool -L "$MAIN_BINARY" | grep libOxCryptoWrapper
           
       - name: Create temporary signing identity
         run: |
