@@ -12,6 +12,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@interface OxCryptoWrapper : NSObject
+
 #pragma mark - Crypto Operations
 
 /**
@@ -119,6 +121,8 @@ NS_ASSUME_NONNULL_BEGIN
  * Secure memory zeroing (anti-debugging)
  */
 + (void)secureZeroBuffer:(void *)buffer length:(size_t)length;
+
+@end
 
 #pragma mark - C++ Bridge (for native interop)
 
